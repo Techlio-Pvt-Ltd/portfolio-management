@@ -328,17 +328,17 @@ footer{padding:36px 0 48px;font-family:var(--font-jetbrains),monospace;font-size
 /* ---------- dashboard ---------- */
 .dash-body{background:var(--bg);color:var(--text);min-height:100vh;font-family:var(--font-instrument),system-ui,sans-serif}
 .dash-shell{display:flex;min-height:100vh}
-.dash-sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--line);padding:24px 0;display:flex;flex-direction:column}
+.dash-sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--line);padding:24px 0;display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0}
 .dash-sidebar .brand{padding:0 24px 20px}
-.dash-nav{display:flex;flex-direction:column;gap:2px}
+.dash-nav{display:flex;flex-direction:column;gap:2px;flex-grow:1;overflow-y:auto}
 .dash-nav button{
   text-align:left;background:none;border:none;color:var(--muted);font-size:14px;font-weight:500;
   padding:12px 24px;cursor:pointer;transition:background .15s,color .15s;border-left:3px solid transparent;
 }
 .dash-nav button:hover{color:var(--text);background:var(--surface-2)}
 .dash-nav button.active{color:var(--amber);background:var(--surface-2);border-left-color:var(--amber)}
-.dash-logout{margin-top:auto;padding:12px 24px}
-.dash-main{flex-grow:1;padding:36px 44px;max-width:960px}
+.dash-logout{padding:12px 24px;border-top:1px solid var(--line);flex-shrink:0}
+.dash-main{flex-grow:1;padding:36px 44px;max-width:960px;margin-left:220px}
 .dash-main h2{margin-bottom:6px}
 .dash-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
 .dash-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin-bottom:18px}
@@ -380,6 +380,7 @@ footer{padding:36px 0 48px;font-family:var(--font-jetbrains),monospace;font-size
 .dash-msg.err{background:rgba(245,114,46,.1);color:#F5722E;border:1px solid rgba(245,114,46,.35)}
 .dash-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .dash-login form{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:32px}
-.dash-login h1{font-size:20px;margin-bottom:6px}
-.dash-login .dash-sub{margin-bottom:22px}
+.dash-login h1{font-size:20px;margin-bottom:6px;text-align:center}
+.dash-login .dash-sub{margin-bottom:22px;text-align:center}
+.dash-login .dash-btn{width:100%;display:block;margin:0 auto}
 .dash-checkbox{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text)}

@@ -77,6 +77,7 @@ export interface Project {
   liveLabel?: string;
   liveUrl?: string;
   categories: string; // comma-separated: ai, saas, realtime, apps
+  imageUrl?: string; // project screenshot
   sortOrder: number;
   published: boolean;
 }

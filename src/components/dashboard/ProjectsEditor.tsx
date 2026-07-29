@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import ReactCrop, { Crop, PixelCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import { useFirestoreCollection } from "@/lib/useFirestoreCollection";
 import { Project } from "@/lib/types";
 
@@ -27,6 +29,14 @@ export default function ProjectsEditor() {
   const [form, setForm] = useState<Omit<Project, "id">>(emptyProject);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imageSrc, setImageSrc] = useState<string>("");
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const imgRef = useRef<HTMLImageElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   function startNew() {
     setForm({ ...emptyProject, sortOrder: items.length });
@@ -45,6 +55,94 @@ export default function ProjectsEditor() {
   function cancel() {
     setEditingId(null);
     setMsg(null);
+  }
+
+  function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        setImageSrc(reader.result as string);
+        setCropModalOpen(true);
+      });
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+    const initialCrop = {
+      unit: "%" as const,
+      x: 25,
+      y: 25,
+      width: 50,
+      height: 50,
+    };
+    setCrop(initialCrop);
+  }
+
+  async function handleCropAndUpload() {
+    if (!completedCrop || !imgRef.current || !canvasRef.current) return;
+
+    const image = imgRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+
+    ctx.drawImage(
+      image,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      setUploading(true);
+      setMsg(null);
+      try {
+        const formData = new FormData();
+        formData.append("file", blob);
+        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          { method: "POST", body: formData }
+        );
+
+        const data = await res.json();
+        if (!res.ok || !data.secure_url) {
+          throw new Error(data.error?.message || "Upload failed");
+        }
+
+        setForm({ ...form, imageUrl: data.secure_url });
+        setCropModalOpen(false);
+        setImageSrc("");
+        setSelectedFile(null);
+      } catch (e) {
+        console.error(e);
+        setMsg({
+          type: "err",
+          text: e instanceof Error ? `Upload failed: ${e.message}` : "Upload failed. Check Cloudinary setup.",
+        });
+      } finally {
+        setUploading(false);
+      }
+    }, "image/jpeg", 0.9);
   }
 
   async function handleSave() {
@@ -158,6 +256,23 @@ export default function ProjectsEditor() {
                 onChange={(e) => setForm({ ...form, categories: e.target.value })}
               />
             </div>
+            <div className="dash-field">
+              <label>Project image</label>
+              {form.imageUrl && (
+                <img
+                  src={form.imageUrl}
+                  alt="Project preview"
+                  style={{ maxWidth: "100%", maxHeight: "200px", marginBottom: "10px", borderRadius: "8px" }}
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onSelectFile}
+                disabled={uploading}
+              />
+              {uploading && <span style={{ fontSize: "12px", color: "var(--muted)" }}>Uploading...</span>}
+            </div>
             <div className="dash-row">
               <div className="dash-field">
                 <label>Sort order</label>
@@ -203,6 +318,58 @@ export default function ProjectsEditor() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {cropModalOpen && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
+        }}>
+          <div style={{
+            background: "var(--surface)", padding: "24px", borderRadius: "12px",
+            maxWidth: "90vw", maxHeight: "90vh", overflow: "auto"
+          }}>
+            <h3 style={{ marginBottom: "16px" }}>Crop Image</h3>
+            {imageSrc && (
+              <ReactCrop
+                crop={crop}
+                onChange={(c) => setCrop(c)}
+                onComplete={(c) => setCompletedCrop(c)}
+              >
+                <img
+                  ref={imgRef}
+                  alt="Crop me"
+                  src={imageSrc}
+                  style={{ maxWidth: "100%", maxHeight: "60vh" }}
+                  onLoad={onImageLoad}
+                />
+              </ReactCrop>
+            )}
+            <canvas
+              ref={canvasRef}
+              style={{ display: "none" }}
+            />
+            <div style={{ display: "flex", gap: "10px", marginTop: "16px", justifyContent: "flex-end" }}>
+              <button
+                className="dash-btn"
+                onClick={() => {
+                  setCropModalOpen(false);
+                  setImageSrc("");
+                  setSelectedFile(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="dash-btn primary"
+                onClick={handleCropAndUpload}
+                disabled={uploading || !completedCrop}
+              >
+                {uploading ? "Uploading..." : "Crop & Upload"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

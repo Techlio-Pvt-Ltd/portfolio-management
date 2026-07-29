@@ -66,17 +66,23 @@ export default function WorkSection({
         <div className="grid" id="projectGrid">
           {visible.map((p) => (
             <article className="card reveal in" key={p.id}>
-              <div
-                className="cover"
-                style={{ "--c1": p.color1, "--c2": p.color2 } as React.CSSProperties}
-                aria-hidden="true"
-              >
-                <span className="mark">{p.markText}</span>
-                <span className="word">
-                  <small>{p.kicker}</small>
-                  {p.coverWord}
-                </span>
-              </div>
+              {p.imageUrl ? (
+                <div className="cover-image">
+                  <img src={p.imageUrl} alt={p.title} />
+                </div>
+              ) : (
+                <div
+                  className="cover"
+                  style={{ "--c1": p.color1, "--c2": p.color2 } as React.CSSProperties}
+                  aria-hidden="true"
+                >
+                  <span className="mark">{p.markText}</span>
+                  <span className="word">
+                    <small>{p.kicker}</small>
+                    {p.coverWord}
+                  </span>
+                </div>
+              )}
               <div className="body">
                 <div className="top">
                   <h3>{p.title}</h3>

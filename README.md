@@ -9,7 +9,11 @@ projects, reviews, capabilities, about, contact, nav, and footer text).
 1. Go to [console.firebase.google.com](https://console.firebase.google.com) and create a new project (free Spark plan is enough).
 2. **Add a Web App** (</> icon) to the project. Copy the config values shown — you'll need them in step 2.
 3. **Authentication** → Sign-in method → enable **Email/Password**.
-4. **Authentication** → Users → **Add user** — this is your dashboard admin login (email + password).
+4. **Authentication** → Users → **Add user** — create your dashboard admin account:
+   - Enter an email address (e.g., your email)
+   - Enter a secure password
+   - Click **Add user**
+   - **Important**: Remember these credentials — you'll use them to log into `/dashboard`
 5. **Firestore Database** → Create database (production mode is fine, any region).
    - Go to the **Rules** tab and paste the contents of `firestore.rules` from this repo, then Publish.
 

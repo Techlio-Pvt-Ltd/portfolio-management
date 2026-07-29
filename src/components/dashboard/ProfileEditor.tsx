@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import ReactCrop, { Crop, PixelCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import { useFirestoreDoc } from "@/lib/useFirestoreDoc";
 import { ContactLink, CredentialRow, Profile, StatItem } from "@/lib/types";
 import { defaultProfile } from "@/lib/seedData";
@@ -11,6 +13,13 @@ export default function ProfileEditor() {
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imageSrc, setImageSrc] = useState<string>("");
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const imgRef = useRef<HTMLImageElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const model = form ?? data;
 
@@ -35,34 +44,91 @@ export default function ProfileEditor() {
     }
   }
 
-  async function handlePortraitUpload(file: File) {
-    setUploading(true);
-    setMsg(null);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
-
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        { method: "POST", body: formData }
-      );
-
-      const data = await res.json();
-      if (!res.ok || !data.secure_url) {
-        throw new Error(data.error?.message || "Upload failed");
-      }
-
-      set("portraitUrl", data.secure_url);
-    } catch (e) {
-      console.error(e);
-      setMsg({
-        type: "err",
-        text: e instanceof Error ? `Upload failed: ${e.message}` : "Upload failed. Check Cloudinary setup.",
+  function onSelectPortraitFile(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        setImageSrc(reader.result as string);
+        setCropModalOpen(true);
       });
-    } finally {
-      setUploading(false);
+      reader.readAsDataURL(file);
     }
+  }
+
+  function onPortraitImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const initialCrop = {
+      unit: "%" as const,
+      x: 25,
+      y: 25,
+      width: 50,
+      height: 50,
+    };
+    setCrop(initialCrop);
+  }
+
+  async function handlePortraitCropAndUpload() {
+    if (!completedCrop || !imgRef.current || !canvasRef.current) return;
+
+    const image = imgRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+
+    ctx.drawImage(
+      image,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      setUploading(true);
+      setMsg(null);
+      try {
+        const formData = new FormData();
+        formData.append("file", blob);
+        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          { method: "POST", body: formData }
+        );
+
+        const data = await res.json();
+        if (!res.ok || !data.secure_url) {
+          throw new Error(data.error?.message || "Upload failed");
+        }
+
+        set("portraitUrl", data.secure_url);
+        setCropModalOpen(false);
+        setImageSrc("");
+        setSelectedFile(null);
+      } catch (e) {
+        console.error(e);
+        setMsg({
+          type: "err",
+          text: e instanceof Error ? `Upload failed: ${e.message}` : "Upload failed. Check Cloudinary setup.",
+        });
+      } finally {
+        setUploading(false);
+      }
+    }, "image/jpeg", 0.9);
   }
 
   function updateStat(i: number, field: keyof StatItem, value: string) {
@@ -177,7 +243,8 @@ export default function ProfileEditor() {
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => e.target.files?.[0] && handlePortraitUpload(e.target.files[0])}
+              onChange={onSelectPortraitFile}
+              disabled={uploading}
             />
             {uploading && <span className="dash-sub">Uploading…</span>}
           </div>
@@ -272,6 +339,58 @@ export default function ProfileEditor() {
       <button className="dash-btn primary" onClick={handleSave} disabled={saving}>
         {saving ? "Saving…" : "Save profile"}
       </button>
+
+      {cropModalOpen && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
+        }}>
+          <div style={{
+            background: "var(--surface)", padding: "24px", borderRadius: "12px",
+            maxWidth: "90vw", maxHeight: "90vh", overflow: "auto"
+          }}>
+            <h3 style={{ marginBottom: "16px" }}>Crop Portrait</h3>
+            {imageSrc && (
+              <ReactCrop
+                crop={crop}
+                onChange={(c) => setCrop(c)}
+                onComplete={(c) => setCompletedCrop(c)}
+              >
+                <img
+                  ref={imgRef}
+                  alt="Crop me"
+                  src={imageSrc}
+                  style={{ maxWidth: "100%", maxHeight: "60vh" }}
+                  onLoad={onPortraitImageLoad}
+                />
+              </ReactCrop>
+            )}
+            <canvas
+              ref={canvasRef}
+              style={{ display: "none" }}
+            />
+            <div style={{ display: "flex", gap: "10px", marginTop: "16px", justifyContent: "flex-end" }}>
+              <button
+                className="dash-btn"
+                onClick={() => {
+                  setCropModalOpen(false);
+                  setImageSrc("");
+                  setSelectedFile(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="dash-btn primary"
+                onClick={handlePortraitCropAndUpload}
+                disabled={uploading || !completedCrop}
+              >
+                {uploading ? "Uploading..." : "Crop & Upload"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mahsam Portfolio
 
-## Getting Started
+Next.js + Firebase rebuild of the portfolio site with a login-protected `/dashboard`
+for managing every piece of content shown on the public page (profile, hero, stats,
+projects, reviews, capabilities, about, contact, nav, and footer text).
 
-First, run the development server:
+## 1. Firebase project setup
+
+1. Go to [console.firebase.google.com](https://console.firebase.google.com) and create a new project (free Spark plan is enough).
+2. **Add a Web App** (</> icon) to the project. Copy the config values shown — you'll need them in step 2.
+3. **Authentication** → Sign-in method → enable **Email/Password**.
+4. **Authentication** → Users → **Add user** — this is your dashboard admin login (email + password).
+5. **Firestore Database** → Create database (production mode is fine, any region).
+   - Go to the **Rules** tab and paste the contents of `firestore.rules` from this repo, then Publish.
+
+## 2. Local setup
+
+```bash
+npm install
+cp env.example .env.local   # PowerShell: Copy-Item env.example .env.local
+```
+
+Fill in `.env.local` with the Web App config values from step 1.2.
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Public site: [http://localhost:3000](http://localhost:3000)
+- Dashboard: [http://localhost:3000/dashboard](http://localhost:3000/dashboard) — log in with the user created in step 1.4.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 3. Load the default content
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The site works out of the box using bundled default content (copied from the
+original design) even before Firestore has any data. To make that content
+**editable**, load it into Firestore once:
 
-## Learn More
+1. Log into `/dashboard`.
+2. Go to the **Setup** tab.
+3. Click **Seed default content**. This only fills collections that are empty, so it's safe to click again later.
 
-To learn more about Next.js, take a look at the following resources:
+## 4. Editing content
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Everything visible on the site is editable from `/dashboard`, no code changes or redeploys required:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Profile** — hero text, badges, stats, portrait image, about paragraphs, credentials, contact links.
+- **Site Content** — nav links, section kickers/headings/subtext, footer text.
+- **Projects** — add/edit/delete/reorder case studies, toggle published on/off.
+- **Reviews** — add/edit/delete testimonials.
+- **Capabilities** — add/edit/delete the three (or more) capability cards.
 
-## Deploy on Vercel
+Saves write directly to Firestore and trigger the public page to refresh immediately.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 5. Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Recommended: Vercel
+
+1. Push this repo to GitHub.
+2. Go to [vercel.com/new](https://vercel.com/new) and import the repository.
+3. Add the following environment variables in Vercel's project settings:
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`
+   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+   - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
+   - `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`
+4. Click Deploy.
+5. After deployment, visit `/dashboard` and click "Seed default content" to load the initial data.
+
+Future `git push`es will auto-deploy. Content edits in the dashboard never require a redeploy.
+
+### Alternative: Netlify
+
+1. Push this repo to GitHub.
+2. Go to [app.netlify.com](https://app.netlify.com) and add a new site from Git.
+3. Add the same environment variables listed above in Netlify's site settings.
+4. Deploy.
+
+### Alternative: Firebase Hosting
+
+1. Install Firebase CLI: `npm install -g firebase-tools`
+2. Run `firebase login` to authenticate.
+3. Run `firebase init hosting` in the project root.
+4. Configure `firebase.json` to build the Next.js app.
+5. Run `firebase deploy`.
+
+## Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **UI Library**: React 19
+- **Language**: TypeScript
+- **Backend/Database**: Firebase
+  - Firestore (content storage)
+  - Authentication (dashboard login)
+- **Image Hosting**: Cloudinary (unsigned upload for portrait images)
+- **Deployment**: Vercel (recommended), Netlify, or Firebase Hosting
+- **Styling**: Custom CSS with CSS variables
+
+## Required Environment Variables
+
+The following environment variables must be set in `.env.local` for local development and in your hosting platform's environment variables for production:
+
+### Firebase (required)
+- `NEXT_PUBLIC_FIREBASE_API_KEY` — Your Firebase project API key
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` — Your Firebase auth domain (e.g., `project-id.firebaseapp.com`)
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID` — Your Firebase project ID
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` — Your Firebase messaging sender ID
+- `NEXT_PUBLIC_FIREBASE_APP_ID` — Your Firebase app ID
+
+### Cloudinary (required for image uploads)
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` — Your Cloudinary cloud name
+- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` — Your Cloudinary unsigned upload preset name
+
+These values are obtained from:
+- Firebase: Firebase Console → Project Settings → General → Your apps → Web App
+- Cloudinary: Cloudinary Dashboard → Settings → Upload → Unsigned upload preset

@@ -13,6 +13,17 @@ projects, reviews, capabilities, about, contact, nav, and footer text).
 5. **Firestore Database** → Create database (production mode is fine, any region).
    - Go to the **Rules** tab and paste the contents of `firestore.rules` from this repo, then Publish.
 
+## 1.5. Cloudinary setup (for image uploads)
+
+1. Go to [cloudinary.com](https://cloudinary.com) and sign up for a free account.
+2. Go to the **Dashboard** and note your **Cloud name** (top of the page).
+3. Go to **Settings** → **Upload** → **Upload presets**.
+4. Click **Add upload preset**.
+5. Name it something memorable (e.g., `portfolio_uploads`).
+6. Under **Signing mode**, select **Unsigned** (this allows upload without API secret).
+7. Click **Save**.
+8. Note the preset name you created — you'll need it in step 2.
+
 ## 2. Local setup
 
 ```bash
@@ -20,7 +31,12 @@ npm install
 cp env.example .env.local   # PowerShell: Copy-Item env.example .env.local
 ```
 
-Fill in `.env.local` with the Web App config values from step 1.2.
+Fill in `.env.local` with:
+- Firebase config values from step 1.2
+- Cloudinary cloud name from step 1.5.2
+- Cloudinary upload preset name from step 1.5.8
+
+**Note**: `.env.local` is for local development only. For production, you'll set these as environment variables in your hosting platform (see step 5).
 
 ```bash
 npm run dev

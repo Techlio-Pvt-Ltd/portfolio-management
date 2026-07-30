@@ -14,6 +14,10 @@ export interface Profile {
   heroLede: string;
   portraitUrl: string;
   portraitTag: string;
+  availabilityBannerIcon: string; // e.g. "🚀"
+  availabilityBannerStatus: string; // e.g. "OPEN TO WORK"
+  availabilityBannerHeading: string; // e.g. "Available for New Projects"
+  availabilityBannerSubtext: string; // e.g. "Let's build something great together"
   ctaPrimaryLabel: string;
   ctaPrimaryHref: string;
   ctaSecondaryLabel: string;

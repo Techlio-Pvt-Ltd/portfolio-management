@@ -30,14 +30,17 @@ export default function Hero({ profile }: { profile: Profile }) {
           </div>
         </div>
         <div className="portrait reveal">
-          <Image
-            src={profile.portraitUrl}
-            alt={profile.name}
-            width={340}
-            height={340}
-            priority
-          />
-          <span className="tag">{profile.portraitTag}</span>
+          <div className="availability-banner">
+            <div className="content">
+              <div className="icon">{profile.availabilityBannerIcon || "🚀"}</div>
+              <div className="status-indicator">
+                <div className="dot"></div>
+                <span>{profile.availabilityBannerStatus || "OPEN TO WORK"}</span>
+              </div>
+              <div className="status">{profile.availabilityBannerHeading || "Available for New Projects"}</div>
+              <div className="subtext">{profile.availabilityBannerSubtext || "Let's build something great together"}</div>
+            </div>
+          </div>
         </div>
       </div>
 

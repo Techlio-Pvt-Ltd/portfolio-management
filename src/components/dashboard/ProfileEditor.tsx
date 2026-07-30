@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
-import ReactCrop, { Crop, PixelCrop } from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
+import { useState } from "react";
 import { useFirestoreDoc } from "@/lib/useFirestoreDoc";
 import { ContactLink, CredentialRow, Profile, StatItem } from "@/lib/types";
 import { defaultProfile } from "@/lib/seedData";
@@ -12,14 +10,6 @@ export default function ProfileEditor() {
   const [form, setForm] = useState<Profile | null>(null);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imageSrc, setImageSrc] = useState<string>("");
-  const [crop, setCrop] = useState<Crop>();
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
-  const imgRef = useRef<HTMLImageElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const model = form ?? data;
 
@@ -42,93 +32,6 @@ export default function ProfileEditor() {
     } finally {
       setSaving(false);
     }
-  }
-
-  function onSelectPortraitFile(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.addEventListener("load", () => {
-        setImageSrc(reader.result as string);
-        setCropModalOpen(true);
-      });
-      reader.readAsDataURL(file);
-    }
-  }
-
-  function onPortraitImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-    const initialCrop = {
-      unit: "%" as const,
-      x: 25,
-      y: 25,
-      width: 50,
-      height: 50,
-    };
-    setCrop(initialCrop);
-  }
-
-  async function handlePortraitCropAndUpload() {
-    if (!completedCrop || !imgRef.current || !canvasRef.current) return;
-
-    const image = imgRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) return;
-
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-
-    canvas.width = completedCrop.width * scaleX;
-    canvas.height = completedCrop.height * scaleY;
-
-    ctx.drawImage(
-      image,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
-
-      setUploading(true);
-      setMsg(null);
-      try {
-        const formData = new FormData();
-        formData.append("file", blob);
-        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
-
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          { method: "POST", body: formData }
-        );
-
-        const data = await res.json();
-        if (!res.ok || !data.secure_url) {
-          throw new Error(data.error?.message || "Upload failed");
-        }
-
-        set("portraitUrl", data.secure_url);
-        setCropModalOpen(false);
-        setImageSrc("");
-        setSelectedFile(null);
-      } catch (e) {
-        console.error(e);
-        setMsg({
-          type: "err",
-          text: e instanceof Error ? `Upload failed: ${e.message}` : "Upload failed. Check Cloudinary setup.",
-        });
-      } finally {
-        setUploading(false);
-      }
-    }, "image/jpeg", 0.9);
   }
 
   function updateStat(i: number, field: keyof StatItem, value: string) {
@@ -235,24 +138,28 @@ export default function ProfileEditor() {
               <input type="text" value={model.ctaSecondaryHref} onChange={(e) => set("ctaSecondaryHref", e.target.value)} />
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="dash-field">
-            <label>Portrait</label>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={model.portraitUrl} alt="Portrait preview" style={{ width: 120, borderRadius: 8, marginBottom: 8 }} />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={onSelectPortraitFile}
-              disabled={uploading}
-            />
-            {uploading && <span className="dash-sub">Uploading…</span>}
-          </div>
-
-          <div className="dash-field">
-            <label>Portrait tag</label>
-            <input type="text" value={model.portraitTag} onChange={(e) => set("portraitTag", e.target.value)} />
-          </div>
+      <div className="dash-card">
+        <label style={{ fontFamily: "var(--font-jetbrains)", fontSize: 12.5, color: "var(--muted)", textTransform: "uppercase" }}>
+          Availability Banner
+        </label>
+        <div className="dash-field" style={{ marginTop: 10 }}>
+          <label>Icon (emoji)</label>
+          <input type="text" value={model.availabilityBannerIcon} onChange={(e) => set("availabilityBannerIcon", e.target.value)} placeholder="🚀" />
+        </div>
+        <div className="dash-field">
+          <label>Status text</label>
+          <input type="text" value={model.availabilityBannerStatus} onChange={(e) => set("availabilityBannerStatus", e.target.value)} placeholder="OPEN TO WORK" />
+        </div>
+        <div className="dash-field">
+          <label>Heading</label>
+          <input type="text" value={model.availabilityBannerHeading} onChange={(e) => set("availabilityBannerHeading", e.target.value)} placeholder="Available for New Projects" />
+        </div>
+        <div className="dash-field">
+          <label>Subtext</label>
+          <input type="text" value={model.availabilityBannerSubtext} onChange={(e) => set("availabilityBannerSubtext", e.target.value)} placeholder="Let's build something great together" />
         </div>
       </div>
 
@@ -339,58 +246,6 @@ export default function ProfileEditor() {
       <button className="dash-btn primary" onClick={handleSave} disabled={saving}>
         {saving ? "Saving…" : "Save profile"}
       </button>
-
-      {cropModalOpen && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)",
-          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
-        }}>
-          <div style={{
-            background: "var(--surface)", padding: "24px", borderRadius: "12px",
-            maxWidth: "90vw", maxHeight: "90vh", overflow: "auto"
-          }}>
-            <h3 style={{ marginBottom: "16px" }}>Crop Portrait</h3>
-            {imageSrc && (
-              <ReactCrop
-                crop={crop}
-                onChange={(c) => setCrop(c)}
-                onComplete={(c) => setCompletedCrop(c)}
-              >
-                <img
-                  ref={imgRef}
-                  alt="Crop me"
-                  src={imageSrc}
-                  style={{ maxWidth: "100%", maxHeight: "60vh" }}
-                  onLoad={onPortraitImageLoad}
-                />
-              </ReactCrop>
-            )}
-            <canvas
-              ref={canvasRef}
-              style={{ display: "none" }}
-            />
-            <div style={{ display: "flex", gap: "10px", marginTop: "16px", justifyContent: "flex-end" }}>
-              <button
-                className="dash-btn"
-                onClick={() => {
-                  setCropModalOpen(false);
-                  setImageSrc("");
-                  setSelectedFile(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="dash-btn primary"
-                onClick={handlePortraitCropAndUpload}
-                disabled={uploading || !completedCrop}
-              >
-                {uploading ? "Uploading..." : "Crop & Upload"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

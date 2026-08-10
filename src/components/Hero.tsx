@@ -1,22 +1,28 @@
-import Image from "next/image";
 import { Profile } from "@/lib/types";
 
 export default function Hero({ profile }: { profile: Profile }) {
   const badges = profile.badges.split(",").map((b) => b.trim()).filter(Boolean);
+  const statusLine =
+    profile.availabilityBannerStatus ||
+    profile.portraitTag ||
+    profile.location;
+  const avatar =
+    profile.name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || profile.brandInitials.slice(0, 2);
 
   return (
     <div className="wrap hero">
       <div className="hero-grid">
         <div>
-          <div className="badges reveal">
-            {badges.map((b, i) => (
-              <span key={i} className={`badge ${i === 0 ? "gold" : ""}`}>
-                {b}
-              </span>
-            ))}
-          </div>
+          <div className="sys-line reveal">{statusLine}</div>
           <h1 className="reveal">
-            {profile.heroHeadingBefore} <b>{profile.heroHeadingHighlight}</b>{" "}
+            {profile.heroHeadingBefore}{" "}
+            <span className="grad">{profile.heroHeadingHighlight}</span>{" "}
             {profile.heroHeadingAfter}
           </h1>
           <p className="lede reveal">{profile.heroLede}</p>
@@ -29,28 +35,27 @@ export default function Hero({ profile }: { profile: Profile }) {
             </a>
           </div>
         </div>
-        <div className="portrait reveal">
-          <div className="availability-banner">
-            <div className="content">
-              <div className="icon">{profile.availabilityBannerIcon || "🚀"}</div>
-              <div className="status-indicator">
-                <div className="dot"></div>
-                <span>{profile.availabilityBannerStatus || "OPEN TO WORK"}</span>
+
+        <div className="pcard reveal">
+          <div className="avatar">{avatar}</div>
+          <div className="pname">{profile.name}</div>
+          <div className="prole">{profile.title}</div>
+          <div className="pbadges">
+            {badges.map((b, i) => (
+              <span key={i} className="pbadge">
+                {b}
+              </span>
+            ))}
+          </div>
+          <div className="pstats" aria-label="Career stats">
+            {profile.stats.map((s, i) => (
+              <div className="ps" key={i}>
+                <div className="n">{s.value}</div>
+                <div className="l">{s.label}</div>
               </div>
-              <div className="status">{profile.availabilityBannerHeading || "Available for New Projects"}</div>
-              <div className="subtext">{profile.availabilityBannerSubtext || "Let's build something great together"}</div>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
-
-      <div className="stats reveal" aria-label="Career stats">
-        {profile.stats.map((s, i) => (
-          <div className="stat" key={i}>
-            <div className="n">{s.value}</div>
-            <div className="l">{s.label}</div>
-          </div>
-        ))}
       </div>
     </div>
   );

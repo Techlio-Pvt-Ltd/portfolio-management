@@ -5,6 +5,8 @@ import { Project, SiteContent } from "@/lib/types";
 
 const CATEGORY_LABELS: Record<string, string> = {
   ai: "AI & Agents",
+  enterprise: "Enterprise",
+  laravel: "Laravel & PHP",
   saas: "SaaS Platforms",
   realtime: "Real-time",
   apps: "Mobile & Desktop",

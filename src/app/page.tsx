@@ -22,6 +22,11 @@ export default async function Home() {
 
   return (
     <>
+      <div className="bg-fx" aria-hidden="true">
+        <div className="orb a" />
+        <div className="orb b" />
+        <div className="orb c" />
+      </div>
       <Header profile={profile} site={site} />
       <main id="top">
         <Hero profile={profile} />

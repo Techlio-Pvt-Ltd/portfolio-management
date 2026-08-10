@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from "next/font/google";
+import { Unbounded, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+const unbounded = Unbounded({
+  variable: "--font-unbounded",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["500", "600", "700"],
 });
 
-const instrument = Instrument_Sans({
-  variable: "--font-instrument",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
@@ -21,9 +21,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Syed Mahsam Abbas — Full-Stack & AI Integration Engineer",
+  title: "Amer Usman — Senior AI Full-Stack Engineer",
   description:
-    "Full-stack and AI integration engineer with 11+ years of experience. $500K+ earned and 25,000+ hours on Upwork. 12 production case studies across maritime AI, regtech, broadcast, education, medtech, and more.",
+    "Senior AI Full-Stack Engineer with 8+ years of experience. Top Rated Plus on Upwork with 100% Job Success, $300K+ earned and 17,000+ hours across AI SaaS, enterprise platforms, and automation systems.",
 };
 
 export default function RootLayout({
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bricolage.variable} ${instrument.variable} ${jetbrains.variable}`}
+      className={`${unbounded.variable} ${spaceGrotesk.variable} ${jetbrains.variable}`}
     >
       <body>{children}</body>
     </html>

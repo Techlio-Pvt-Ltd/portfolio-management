@@ -8,13 +8,15 @@ export default function Header({
   site: SiteContent;
 }) {
   const links = ["Work", "Reviews", "Capabilities", "About"];
+  const [brandBase, ...brandRest] = profile.brandInitials.split(".");
+  const brandAccent = brandRest.length ? `.${brandRest.join(".")}` : ".";
 
   return (
     <header>
       <div className="wrap nav">
         <a className="brand" href="#top">
-          {profile.brandInitials}
-          <span>.</span>
+          {brandBase}
+          <span>{brandAccent}</span>
         </a>
         <nav className="nav-links" aria-label="Main">
           {links.map((label) => (

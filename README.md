@@ -121,6 +121,9 @@ Future `git push`es will auto-deploy. Content edits in the dashboard never requi
 
 The following environment variables must be set in `.env.local` for local development and in your hosting platform's environment variables for production:
 
+### Server
+- `PORT` — Optional in `.env.local`. Defaults to `3000` if unset.
+
 ### Firebase (required)
 - `NEXT_PUBLIC_FIREBASE_API_KEY` — Your Firebase project API key
 - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` — Your Firebase auth domain (e.g., `project-id.firebaseapp.com`)

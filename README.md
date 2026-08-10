@@ -1,4 +1,4 @@
-# Mahsam Portfolio
+# Amer Portfolio
 
 Next.js + Firebase rebuild of the portfolio site with a login-protected `/dashboard`
 for managing every piece of content shown on the public page (profile, hero, stats,

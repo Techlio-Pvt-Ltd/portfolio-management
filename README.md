@@ -90,6 +90,29 @@ Saves write directly to Firestore and trigger the public page to refresh immedia
 
 Future `git push`es will auto-deploy. Content edits in the dashboard never require a redeploy.
 
+### Alternative: AWS (serverless, via SST)
+
+Deploys to Lambda + CloudFront + S3 using [SST](https://sst.dev) and
+[OpenNext](https://opennext.js.org/aws). At portfolio-level traffic this stays
+within AWS's always-free tiers. The only fixed cost is $0.50/month if you host DNS in Route 53.
+
+1. Install the AWS CLI and sign in with an account that can create resources: `aws configure` (or `aws sso login`).
+2. Put the environment variables in `.env.production`. SST reads this file for the `production` stage, and so does `next build`:
+   ```bash
+   cp .env.local .env.production
+   ```
+3. Deploy:
+   ```bash
+   npm run deploy
+   ```
+   The site URL (`https://xxxx.cloudfront.net`) is printed at the end.
+4. Optional: to use a custom domain, set `domain` in `sst.config.ts` and deploy again.
+
+Notes:
+- Infrastructure lives in `sst.config.ts`. Region is `us-east-1`; change `providers.aws.region` there if your Firestore database is elsewhere.
+- The `production` stage is protected and its resources are retained. To tear it down, set `protect: false` and run `npx sst remove --stage production`.
+- Dashboard edits can take up to ~60 seconds to appear, while CloudFront serves the cached page.
+
 ### Alternative: Netlify
 
 1. Push this repo to GitHub.
@@ -114,7 +137,7 @@ Future `git push`es will auto-deploy. Content edits in the dashboard never requi
   - Firestore (content storage)
   - Authentication (dashboard login)
 - **Image Hosting**: Cloudinary (unsigned upload for portrait images)
-- **Deployment**: Vercel (recommended), Netlify, or Firebase Hosting
+- **Deployment**: Vercel (recommended), AWS via SST, Netlify, or Firebase Hosting
 - **Styling**: Custom CSS with CSS variables
 
 ## Required Environment Variables

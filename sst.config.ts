@@ -37,9 +37,14 @@ export default $config({
       environment: Object.fromEntries(
         PUBLIC_ENV.map((key) => [key, process.env[key]!]),
       ),
-      // Uncomment to serve from your own domain (DNS hosted in Route 53).
-      // For DNS hosted elsewhere, see https://sst.dev/docs/custom-domains
-      // domain: "example.com",
+      // DNS is managed by hand in Cloudflare, so SST only attaches the domain
+      // and this ACM certificate (us-east-1) to the CloudFront distribution.
+      domain: {
+        name: "thedevgeek.com",
+        aliases: ["www.thedevgeek.com"],
+        dns: false,
+        cert: "arn:aws:acm:us-east-1:225989335286:certificate/5c42d942-9c0c-43c4-8988-8f6226f98037",
+      },
     });
 
     return { url: site.url };

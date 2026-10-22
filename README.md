@@ -20,13 +20,8 @@ projects, reviews, capabilities, about, contact, nav, and footer text).
 ## 1.5. Cloudinary setup (for image uploads)
 
 1. Go to [cloudinary.com](https://cloudinary.com) and sign up for a free account.
-2. Go to the **Dashboard** and note your **Cloud name** (top of the page).
-3. Go to **Settings** → **Upload** → **Upload presets**.
-4. Click **Add upload preset**.
-5. Name it something memorable (e.g., `portfolio_uploads`).
-6. Under **Signing mode**, select **Unsigned** (this allows upload without API secret).
-7. Click **Save**.
-8. Note the preset name you created — you'll need it in step 2.
+2. On the **Dashboard** home page, find the **Product Environment Credentials** box and note the three values: **Cloud name**, **API Key**, and **API Secret** (click the eye icon to reveal it).
+3. Uploads are **signed**: the dashboard calls `/api/cloudinary-sign`, which requires your dashboard login and signs each upload with the API secret on the server. No upload preset is needed, and strangers can't upload to your account.
 
 ## 2. Local setup
 
@@ -37,8 +32,7 @@ cp env.example .env.local   # PowerShell: Copy-Item env.example .env.local
 
 Fill in `.env.local` with:
 - Firebase config values from step 1.2
-- Cloudinary cloud name from step 1.5.2
-- Cloudinary upload preset name from step 1.5.8
+- Cloudinary cloud name, API key, and API secret from step 1.5.2
 
 **Note**: `.env.local` is for local development only. For production, you'll set these as environment variables in your hosting platform (see step 5).
 
@@ -84,7 +78,8 @@ Saves write directly to Firestore and trigger the public page to refresh immedia
    - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
    - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
-   - `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`
+   - `CLOUDINARY_API_KEY`
+   - `CLOUDINARY_API_SECRET`
 4. Click Deploy.
 5. After deployment, visit `/dashboard` and click "Seed default content" to load the initial data.
 
@@ -136,7 +131,7 @@ Notes:
 - **Backend/Database**: Firebase
   - Firestore (content storage)
   - Authentication (dashboard login)
-- **Image Hosting**: Cloudinary (unsigned upload for portrait images)
+- **Image Hosting**: Cloudinary (signed uploads for project images)
 - **Deployment**: Vercel (recommended), AWS via SST, Netlify, or Firebase Hosting
 - **Styling**: Custom CSS with CSS variables
 
@@ -150,11 +145,13 @@ The following environment variables must be set in `.env.local` for local develo
 - `NEXT_PUBLIC_FIREBASE_PROJECT_ID` — Your Firebase project ID
 - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` — Your Firebase messaging sender ID
 - `NEXT_PUBLIC_FIREBASE_APP_ID` — Your Firebase app ID
+- `ADMIN_UID` — Your admin user's UID (Firebase Console → Authentication → Users → User UID column). API routes and Firestore rules only trust this account — self-registered users can't call them. The same UID is hardcoded in `firestore.rules` and `storage.rules`.
 
 ### Cloudinary (required for image uploads)
 - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` — Your Cloudinary cloud name
-- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` — Your Cloudinary unsigned upload preset name
+- `CLOUDINARY_API_KEY` — Your Cloudinary API key (server-only)
+- `CLOUDINARY_API_SECRET` — Your Cloudinary API secret (server-only)
 
 These values are obtained from:
 - Firebase: Firebase Console → Project Settings → General → Your apps → Web App
-- Cloudinary: Cloudinary Dashboard → Settings → Upload → Unsigned upload preset
+- Cloudinary: Cloudinary Dashboard → Product Environment Credentials

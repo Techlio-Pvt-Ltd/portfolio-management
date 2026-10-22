@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import ReactCrop, { Crop, PixelCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useFirestoreCollection } from "@/lib/useFirestoreCollection";
+import { auth } from "@/lib/firebase";
 import { Project } from "@/lib/types";
 
 const emptyProject: Omit<Project, "id"> = {
@@ -115,12 +116,25 @@ export default function ProjectsEditor() {
       setUploading(true);
       setMsg(null);
       try {
+        const idToken = await auth?.currentUser?.getIdToken();
+        if (!idToken) throw new Error("Not signed in.");
+
+        const signRes = await fetch("/api/cloudinary-sign", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        const sign = await signRes.json();
+        if (!signRes.ok) throw new Error(sign.error || "Failed to sign upload.");
+
         const formData = new FormData();
         formData.append("file", blob);
-        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+        formData.append("api_key", sign.apiKey);
+        formData.append("timestamp", String(sign.timestamp));
+        formData.append("signature", sign.signature);
+        formData.append("folder", sign.folder);
 
         const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
           { method: "POST", body: formData }
         );
 

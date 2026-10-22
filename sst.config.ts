@@ -10,7 +10,14 @@ const PUBLIC_ENV = [
   "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
   "NEXT_PUBLIC_FIREBASE_APP_ID",
   "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
-  "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET",
+] as const;
+
+// Server-only secrets — attached to the Lambda environment but never shipped
+// to the browser bundle (no NEXT_PUBLIC_ prefix). Used by API routes.
+const SERVER_ENV = [
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
+  "ADMIN_UID",
 ] as const;
 
 export default $config({
@@ -26,7 +33,7 @@ export default $config({
     };
   },
   async run() {
-    const missing = PUBLIC_ENV.filter((key) => !process.env[key]);
+    const missing = [...PUBLIC_ENV, ...SERVER_ENV].filter((key) => !process.env[key]);
     if (missing.length) {
       throw new Error(
         `Missing env vars: ${missing.join(", ")}. Add them to .env.${$app.stage} or export them before deploying.`,
@@ -35,7 +42,7 @@ export default $config({
 
     const site = new sst.aws.Nextjs("MahsamPortfolio", {
       environment: Object.fromEntries(
-        PUBLIC_ENV.map((key) => [key, process.env[key]!]),
+        [...PUBLIC_ENV, ...SERVER_ENV].map((key) => [key, process.env[key]!]),
       ),
       // DNS is managed by hand in Cloudflare, so SST only attaches the domain
       // and this ACM certificate (us-east-1) to the CloudFront distribution.

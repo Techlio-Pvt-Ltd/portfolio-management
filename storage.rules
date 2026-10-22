@@ -2,10 +2,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     // Public read access to uploaded images, writes only allowed for the
-    // signed-in admin.
+    // admin account below (self-registered Firebase users are rejected).
     match /{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.uid == "HKVgiI7kWPg3hOSI6lVHhMdnC3J2";
     }
   }
 }

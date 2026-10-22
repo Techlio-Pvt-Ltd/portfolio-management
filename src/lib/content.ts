@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "./firebase";
 import { Capability, Profile, Project, Review, SiteContent } from "./types";
@@ -13,7 +14,7 @@ import {
 // if Firestore isn't configured yet or a document doesn't exist, so the site
 // always renders something sensible.
 
-export async function getProfile(): Promise<Profile> {
+export const getProfile = cache(async (): Promise<Profile> => {
   try {
     const snap = await getDoc(doc(db, "settings", "profile"));
     if (snap.exists()) return snap.data() as Profile;
@@ -21,7 +22,7 @@ export async function getProfile(): Promise<Profile> {
     // Firestore not reachable/configured — use defaults.
   }
   return defaultProfile;
-}
+});
 
 export async function getSiteContent(): Promise<SiteContent> {
   try {

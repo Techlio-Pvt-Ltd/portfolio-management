@@ -90,6 +90,10 @@ export default function ProfileEditor() {
               <input type="text" value={model.name} onChange={(e) => set("name", e.target.value)} />
             </div>
             <div className="dash-field">
+              <label>Title</label>
+              <input type="text" value={model.title} onChange={(e) => set("title", e.target.value)} />
+            </div>
+            <div className="dash-field">
               <label>Location</label>
               <input type="text" value={model.location} onChange={(e) => set("location", e.target.value)} />
             </div>

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -19,12 +18,6 @@ const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
 });
-
-export const metadata: Metadata = {
-  title: "Syed Mahsam Abbas — Full-Stack & AI Integration Engineer",
-  description:
-    "Full-stack and AI integration engineer with 11+ years of experience. $500K+ earned and 25,000+ hours on Upwork. 12 production case studies across maritime AI, regtech, broadcast, education, medtech, and more.",
-};
 
 export default function RootLayout({
   children,

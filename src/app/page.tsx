@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getCapabilities, getProfile, getProjects, getReviews, getSiteContent } from "@/lib/content";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -10,6 +11,14 @@ import Footer from "@/components/Footer";
 import RevealEffect from "@/components/RevealEffect";
 
 export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getProfile();
+  return {
+    title: `${profile.name} — ${profile.title}`,
+    description: profile.heroLede,
+  };
+}
 
 export default async function Home() {
   const [profile, site, projects, reviews, capabilities] = await Promise.all([

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Unbounded, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -19,12 +18,6 @@ const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
 });
-
-export const metadata: Metadata = {
-  title: "Amer Usman — Senior AI Full-Stack Engineer",
-  description:
-    "Senior AI Full-Stack Engineer with 8+ years of experience. Top Rated Plus on Upwork with 100% Job Success, $300K+ earned and 17,000+ hours across AI SaaS, enterprise platforms, and automation systems.",
-};
 
 export default function RootLayout({
   children,

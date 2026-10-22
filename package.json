@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "dotenv -e .env.local -- next start",
     "lint": "eslint",
-    "deploy": "sst deploy --stage production"
+    "deploy": "AWS_PROFILE=techlio AWS_REGION=us-east-1 sst deploy --stage production"
   },
   "dependencies": {
     "firebase": "^12.16.0",

@@ -28,7 +28,7 @@ export default $config({
       protect: false,
       home: "aws",
       providers: {
-        aws: { region: "us-east-1" },
+        aws: { region: "us-east-1", defaultTags: { tags: { Project: "amer-portfolio" } } },
       },
     };
   },
